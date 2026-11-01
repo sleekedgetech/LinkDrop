@@ -146,17 +146,23 @@ export default function Home() {
       <header className="border-b border-white/10 bg-obsidian-950/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center font-black text-black text-lg tracking-wider shadow-lg shadow-cyan-500/20">
-              L
-            </div>
-            <div>
-              <span className="font-extrabold text-xl tracking-tight text-white">
-                Link<span className="text-cyan-400">Drop</span>
-              </span>
-              <span className="ml-2 text-[10px] tracking-widest uppercase font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                Community Bot Live
-              </span>
-            </div>
+            <a href="/" className="flex items-center gap-2.5 group">
+              <div className="w-10 h-10 rounded-xl overflow-hidden border border-brand-cyan/40 shadow-lg shadow-brand-cyan/20 group-hover:scale-105 transition shrink-0 bg-black">
+                <img src="/logo.jpg" alt="LinkDrop Bot" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <div className="flex items-baseline">
+                  <span className="font-black text-xl tracking-tight text-white">Link</span>
+                  <span className="font-black text-xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-electric to-brand-cyan">Drop</span>
+                </div>
+                <div className="text-[9px] tracking-[0.28em] font-extrabold text-brand-cyan uppercase -mt-1 opacity-90">
+                  B O T
+                </div>
+              </div>
+            </a>
+            <span className="ml-1 text-[10px] tracking-wider uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hidden sm:inline-flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Community Bot Live
+            </span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -164,7 +170,7 @@ export default function Home() {
               href="#community"
               className="text-sm font-medium text-gray-300 hover:text-white transition flex items-center gap-1.5"
             >
-              <Send className="w-4 h-4 text-cyan-400" />
+              <Send className="w-4 h-4 text-brand-cyan" />
               Telegram Group
             </a>
             <a
@@ -179,16 +185,27 @@ export default function Home() {
       </header>
 
       {/* Hero & Downloader Section */}
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 pt-12 pb-20">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 pt-10 pb-20">
         <div className="text-center space-y-4 mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-obsidian-900/60 text-xs font-medium text-gray-300">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="flex justify-center mb-1">
+            <div className="relative group cursor-pointer">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl overflow-hidden border-2 border-brand-cyan/40 shadow-2xl shadow-brand-cyan/25 bg-black transition transform group-hover:scale-105">
+                <img src="/logo.jpg" alt="LinkDrop Mascot" className="w-full h-full object-cover" />
+              </div>
+              <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-full bg-brand-electric text-[10px] font-black text-white uppercase tracking-wider border border-white/20 shadow-md">
+                v1.0
+              </div>
+            </div>
+          </div>
+
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand-cyan/30 bg-brand-cyan/10 text-xs font-semibold text-brand-cyan">
+            <Sparkles className="w-3.5 h-3.5 text-brand-cyan" />
             <span>Zero Watermarks • Original HD Bitrate • 100% Free</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
             Drop the link. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-300">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-brand-cyan to-brand-electric">
               Download clean media.
             </span>
           </h1>
@@ -199,7 +216,7 @@ export default function Home() {
         </div>
 
         {/* Input Card */}
-        <div className="bg-obsidian-900/90 border border-white/10 rounded-2xl p-3 sm:p-4 shadow-2xl shadow-black/80 backdrop-blur-xl relative">
+        <div className="bg-obsidian-900/90 border border-brand-cyan/20 rounded-2xl p-3 sm:p-4 shadow-2xl shadow-black/80 backdrop-blur-xl relative">
           <form onSubmit={handleDownload} className="flex flex-col sm:flex-row items-stretch gap-2.5">
             <div className="relative flex-1 flex items-center">
               <input
@@ -207,7 +224,7 @@ export default function Home() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="Paste video URL (TikTok, Instagram Reels, YouTube, etc.)..."
-                className="w-full bg-obsidian-950 border border-white/10 rounded-xl px-4 py-3.5 pl-11 text-sm sm:text-base text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400/80 transition"
+                className="w-full bg-obsidian-950 border border-white/10 rounded-xl px-4 py-3.5 pl-11 text-sm sm:text-base text-white placeholder-gray-500 focus:outline-none focus:border-brand-cyan/80 transition"
                 required
               />
               <div className="absolute left-3.5 text-gray-500">
@@ -227,7 +244,7 @@ export default function Home() {
             <button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-bold px-6 py-3.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50 text-sm sm:text-base cursor-pointer"
+              className="bg-gradient-to-r from-brand-electric to-brand-cyan hover:opacity-95 text-black font-extrabold px-6 py-3.5 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-brand-cyan/20 disabled:opacity-50 text-sm sm:text-base cursor-pointer"
             >
               {loading ? (
                 <>
@@ -335,14 +352,27 @@ export default function Home() {
         {/* Telegram Community Feature Section */}
         <section
           id="community"
-          className="mt-20 border border-cyan-500/20 bg-gradient-to-b from-obsidian-900 to-obsidian-950 rounded-3xl p-6 sm:p-10 relative overflow-hidden"
+          className="mt-20 border border-brand-cyan/25 bg-gradient-to-b from-obsidian-900 to-obsidian-950 rounded-3xl p-6 sm:p-10 relative overflow-hidden"
         >
-          <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-80 h-80 bg-brand-cyan/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400 mb-4">
+          <div className="max-w-2xl relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-cyan/10 border border-brand-cyan/30 text-xs font-semibold text-brand-cyan mb-4">
               <Send className="w-3.5 h-3.5" />
-              Telegram Community Integration
+              Official Telegram Community Bot
+            </div>
+
+            <div className="flex items-center gap-3.5 mb-5">
+              <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-brand-cyan/40 shadow-xl shadow-brand-cyan/20 bg-black shrink-0">
+                <img src="/logo.jpg" alt="LinkDrop Bot" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="font-extrabold text-white text-xl">LinkDrop</span>
+                  <span className="text-xs font-black tracking-widest uppercase text-brand-cyan">BOT</span>
+                </div>
+                <p className="text-xs text-gray-400">Pristine no-watermark downloads in Telegram groups</p>
+              </div>
             </div>
 
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
@@ -356,14 +386,14 @@ export default function Home() {
 
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-4 rounded-xl bg-obsidian-850/60 border border-white/5">
-                <div className="text-cyan-400 font-bold text-sm mb-1">⏳ Native 60s Slow Mode</div>
+                <div className="text-brand-cyan font-bold text-sm mb-1">⏳ Native 60s Slow Mode</div>
                 <div className="text-xs text-gray-400">
                   Fair-share spam protection with countdown timers displayed right in your Telegram message box.
                 </div>
               </div>
 
               <div className="p-4 rounded-xl bg-obsidian-850/60 border border-white/5">
-                <div className="text-pink-400 font-bold text-sm mb-1">🎬 Zero In-Video Ads</div>
+                <div className="text-brand-pink font-bold text-sm mb-1">🎬 Zero In-Video Ads</div>
                 <div className="text-xs text-gray-400">
                   Clean original stream delivery without obnoxious watermarks, overlays, or modified outro audio.
                 </div>
@@ -375,13 +405,13 @@ export default function Home() {
                 href="https://t.me"
                 target="_blank"
                 rel="noreferrer"
-                className="px-6 py-3.5 rounded-xl font-extrabold text-sm bg-cyan-500 hover:bg-cyan-400 text-black transition flex items-center gap-2 shadow-lg shadow-cyan-500/20"
+                className="px-6 py-3.5 rounded-xl font-extrabold text-sm bg-gradient-to-r from-brand-electric to-brand-cyan hover:opacity-95 text-black transition flex items-center gap-2 shadow-lg shadow-brand-cyan/25"
               >
                 <Send className="w-4 h-4" />
                 Join Telegram Community
                 <ExternalLink className="w-3.5 h-3.5 ml-1" />
               </a>
-              <span className="text-xs text-gray-500">Free to join • Instant access</span>
+              <span className="text-xs text-gray-400">Free to join • Instant access</span>
             </div>
           </div>
         </section>

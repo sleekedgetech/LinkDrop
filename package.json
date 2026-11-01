@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "bot:dev": "node scripts/bot-dev.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

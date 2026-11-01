@@ -93,12 +93,16 @@ export default function AdminPage() {
             >
               <ChevronLeft className="w-5 h-5" />
             </a>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-xl tracking-tight text-white">
-                Link<span className="text-cyan-400">Drop</span>
-              </span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-semibold">
-                Admin Control
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg overflow-hidden border border-brand-cyan/40 shadow-sm bg-black shrink-0">
+                <img src="/logo.jpg" alt="LinkDrop Logo" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex items-baseline">
+                <span className="font-extrabold text-lg tracking-tight text-white">Link</span>
+                <span className="font-extrabold text-lg tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-electric to-brand-cyan">Drop</span>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/30 font-bold tracking-wider uppercase">
+                Admin
               </span>
             </div>
           </div>

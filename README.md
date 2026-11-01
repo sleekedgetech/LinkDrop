@@ -95,3 +95,4 @@ Once deployed to your Cloudflare domain (e.g. `https://linkdrop.pages.dev`), reg
 curl -F "url=https://linkdrop.pages.dev/api/telegram/webhook" https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook
 ```
 Or simply copy the webhook URL from your LinkDrop Admin Dashboard at `/admin`!
+

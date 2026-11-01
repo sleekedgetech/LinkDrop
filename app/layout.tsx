@@ -9,8 +9,12 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "LinkDrop | Clean Video Downloader & Community Bot",
+  title: "LinkDrop Bot | Clean Video Downloader & Community Bot",
   description: "Download TikTok, Instagram, YouTube, and Snapchat videos without watermarks. High-speed media extraction.",
+  icons: {
+    icon: "/logo.jpg",
+    apple: "/logo.jpg",
+  },
 };
 
 export default function RootLayout({
