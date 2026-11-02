@@ -2,6 +2,7 @@ import { ExtractedMedia } from "../types";
 import { detectPlatform } from "./platform";
 import { extractTikTok } from "./tikwm";
 import { extractCobalt } from "./cobalt";
+import { extractYtDlp } from "./ytdlp";
 
 export async function extractMedia(url: string): Promise<ExtractedMedia> {
   const platform = detectPlatform(url);
@@ -12,7 +13,17 @@ export async function extractMedia(url: string): Promise<ExtractedMedia> {
     if (tikwmResult) return tikwmResult;
   }
 
-  // Universal Cobalt engine for YouTube, Instagram, Snapchat, Facebook, X, etc.
+  // YouTube / Multi-platform yt-dlp powerhouse
+  if (platform === "youtube") {
+    const ytdlResult = await extractYtDlp(url, platform);
+    if (ytdlResult) return ytdlResult;
+  }
+
+  // Universal yt-dlp first for other platforms
+  const ytGeneralResult = await extractYtDlp(url, platform);
+  if (ytGeneralResult) return ytGeneralResult;
+
+  // Universal Cobalt engine fallback
   const cobaltResult = await extractCobalt(url, platform);
   if (cobaltResult) return cobaltResult;
 

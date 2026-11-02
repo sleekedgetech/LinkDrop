@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { extractMedia } from "@/lib/extractor";
 import { incrementDownloadStats } from "@/lib/storage/kv";
 
-export const runtime = "edge";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {

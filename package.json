@@ -10,6 +10,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@distube/ytdl-core": "^4.16.12",
+    "@sasmeee/igdl": "^0.0.1-security",
     "clsx": "^2.1.1",
     "lucide-react": "^1.16.0",
     "next": "^14.2.24",
@@ -27,4 +29,3 @@
     "typescript": "^5.7.3"
   }
 }
-
