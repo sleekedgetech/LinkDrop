@@ -6,64 +6,97 @@ const execFileAsync = promisify(execFile);
 
 export async function extractYtDlp(url: string, platform: SupportedPlatform): Promise<ExtractedMedia | null> {
   try {
-    // 1. Get metadata JSON
-    const { stdout: jsonOut } = await execFileAsync(
-      "python",
-      ["-m", "yt_dlp", "-j", "--no-playlist", "--no-warnings", url],
-      { maxBuffer: 25 * 1024 * 1024 }
-    );
+    // Single fast execution with mobile player clients to bypass YouTube bot detection
+    const args = [
+      "-m",
+      "yt_dlp",
+      "--no-playlist",
+      "--no-warnings",
+      "-j",
+    ];
+
+    if (platform === "youtube") {
+      args.push("--extractor-args", "youtube:player_client=android,ios");
+    }
+
+    args.push(url);
+
+    const { stdout: jsonOut } = await execFileAsync("python", args, {
+      maxBuffer: 30 * 1024 * 1024,
+      timeout: 25000,
+    });
 
     const data = JSON.parse(jsonOut);
-    if (!data) return null;
+    if (!data || !data.formats) return null;
 
-    // 2. Resolve direct downloadable stream URLs
-    let videoStreamUrl = "";
-    let audioStreamUrl = "";
+    const formats = data.formats;
 
-    try {
-      const { stdout: gOut } = await execFileAsync(
-        "python",
-        ["-m", "yt_dlp", "-g", "-f", "best[ext=mp4]/best", "--no-playlist", url],
-        { maxBuffer: 5 * 1024 * 1024 }
-      );
-      videoStreamUrl = gOut.trim().split("\n")[0];
-    } catch {
-      // Fallback to format list
-      const mp4Format = data.formats?.find(
-        (f: any) => f.url && f.ext === "mp4" && f.vcodec !== "none"
-      );
-      if (mp4Format) videoStreamUrl = mp4Format.url;
-    }
+    // 1. Find best playable video stream (preferably with audio merged)
+    // First try progressive MP4 (audio + video together)
+    const progressiveMp4 = formats
+      .filter(
+        (f: any) =>
+          f.url &&
+          f.ext === "mp4" &&
+          f.vcodec !== "none" &&
+          f.acodec !== "none" &&
+          !f.url.includes("manifest")
+      )
+      .sort((a: any, b: any) => (b.height || 0) - (a.height || 0));
 
-    try {
-      const { stdout: aOut } = await execFileAsync(
-        "python",
-        ["-m", "yt_dlp", "-g", "-f", "ba/bestaudio", "--no-playlist", url],
-        { maxBuffer: 5 * 1024 * 1024 }
-      );
-      audioStreamUrl = aOut.trim().split("\n")[0];
-    } catch {
-      // Optional audio fallback
-    }
+    // Fallback: any video stream with a direct URL
+    const videoOnly = formats
+      .filter((f: any) => f.url && f.vcodec !== "none" && !f.url.includes("manifest"))
+      .sort((a: any, b: any) => (b.height || 0) - (a.height || 0));
 
-    if (!videoStreamUrl && !audioStreamUrl) {
+    // Audio-only stream
+    const audioStreams = formats
+      .filter(
+        (f: any) =>
+          f.url &&
+          f.vcodec === "none" &&
+          f.acodec !== "none" &&
+          !f.url.includes("manifest")
+      )
+      .sort((a: any, b: any) => (b.abr || 0) - (a.abr || 0));
+
+    const bestVideo = progressiveMp4[0] || videoOnly[0];
+    const bestAudio = audioStreams[0];
+
+    const videoUrl = bestVideo?.url || data.url;
+    const audioUrl = bestAudio?.url;
+
+    if (!videoUrl && !audioUrl) {
       return null;
     }
 
     const options = [];
-    if (videoStreamUrl) {
+    if (bestVideo && bestVideo.url) {
+      const resLabel = bestVideo.height ? `${bestVideo.height}p HD` : "HD Video";
       options.push({
-        quality: "HD Video (Clean MP4)",
+        quality: `${resLabel} (Clean MP4)`,
         format: "mp4" as const,
-        url: videoStreamUrl,
+        url: bestVideo.url,
       });
     }
 
-    if (audioStreamUrl) {
+    // Add additional resolutions if available
+    if (progressiveMp4.length > 1) {
+      const secondOption = progressiveMp4[1];
+      if (secondOption && secondOption.url && secondOption.url !== bestVideo?.url) {
+        options.push({
+          quality: `${secondOption.height || 480}p SD (Clean MP4)`,
+          format: "mp4" as const,
+          url: secondOption.url,
+        });
+      }
+    }
+
+    if (bestAudio && bestAudio.url) {
       options.push({
-        quality: "Audio Stream (MP3)",
+        quality: `Audio Stream (${Math.round(bestAudio.abr || 128)}kbps MP3)`,
         format: "mp3" as const,
-        url: audioStreamUrl,
+        url: bestAudio.url,
         isAudioOnly: true,
       });
     }
@@ -75,13 +108,18 @@ export async function extractYtDlp(url: string, platform: SupportedPlatform): Pr
       author: data.uploader || data.channel || data.creator,
       thumbnail: data.thumbnail,
       duration: data.duration,
-      downloadUrl: videoStreamUrl || audioStreamUrl,
-      audioUrl: audioStreamUrl,
-      options,
+      downloadUrl: videoUrl || audioUrl,
+      audioUrl: audioUrl,
+      options: options.length > 0 ? options : [
+        {
+          quality: "HD Stream (MP4)",
+          format: "mp4" as const,
+          url: videoUrl,
+        }
+      ],
     };
   } catch (err: any) {
-    console.error("yt-dlp extraction failed:", err?.message || err);
+    console.error("Fast yt-dlp extraction error:", err?.message || err);
     return null;
   }
 }
-

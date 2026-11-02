@@ -282,6 +282,35 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Loading Progress State */}
+        {loading && (
+          <div className="mt-6 p-4 rounded-xl border border-brand-cyan/30 bg-obsidian-900/90 shadow-xl shadow-brand-cyan/10 animate-in fade-in duration-200">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center shrink-0">
+                <Loader2 className="w-5 h-5 text-brand-cyan animate-spin" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-bold text-white flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-brand-cyan" />
+                    Working on your video...
+                  </p>
+                  <span className="text-[11px] font-mono text-brand-cyan animate-pulse">
+                    Processing stream
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Bypassing platform restrictions & generating clean HD download options...
+                </p>
+              </div>
+            </div>
+            {/* Animated Progress Bar */}
+            <div className="mt-3 w-full bg-obsidian-950 rounded-full h-1.5 overflow-hidden">
+              <div className="bg-gradient-to-r from-brand-electric via-brand-cyan to-brand-electric w-full h-full rounded-full animate-pulse" />
+            </div>
+          </div>
+        )}
+
         {/* Error Alert */}
         {error && (
           <div className="mt-6 p-4 rounded-xl border border-red-500/30 bg-red-950/20 text-red-300 text-sm flex items-start gap-3">
