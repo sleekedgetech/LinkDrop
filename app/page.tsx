@@ -110,9 +110,17 @@ export default function Home() {
     }
   };
 
-  const handleDownload = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!url.trim()) return;
+  const handleDownload = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    let cleanUrl = url.trim();
+    if (!cleanUrl) return;
+
+    if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://")) {
+      cleanUrl = "https://" + cleanUrl;
+    }
 
     setLoading(true);
     setError(null);
@@ -122,7 +130,7 @@ export default function Home() {
       const res = await fetch("/api/extract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim() }),
+        body: JSON.stringify({ url: cleanUrl }),
       });
 
       const data = await res.json();
@@ -131,6 +139,9 @@ export default function Home() {
       }
 
       setResult(data);
+      setTimeout(() => {
+        document.getElementById("result-card")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 100);
     } catch (err: any) {
       setError(err.message || "Something went wrong. Please check your link.");
     } finally {
@@ -217,12 +228,24 @@ export default function Home() {
 
         {/* Input Card */}
         <div className="bg-obsidian-900/90 border border-brand-cyan/20 rounded-2xl p-3 sm:p-4 shadow-2xl shadow-black/80 backdrop-blur-xl relative">
-          <form onSubmit={handleDownload} className="flex flex-col sm:flex-row items-stretch gap-2.5">
+          <form
+            action="javascript:void(0);"
+            method="POST"
+            onSubmit={handleDownload}
+            className="flex flex-col sm:flex-row items-stretch gap-2.5"
+          >
             <div className="relative flex-1 flex items-center">
               <input
-                type="url"
+                type="text"
+                inputMode="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleDownload(e);
+                  }
+                }}
                 placeholder="Paste video URL (TikTok, Instagram Reels, YouTube, etc.)..."
                 className="w-full bg-obsidian-950 border border-white/10 rounded-xl px-4 py-3.5 pl-11 text-sm sm:text-base text-white placeholder-gray-500 focus:outline-none focus:border-brand-cyan/80 transition"
                 required
@@ -324,7 +347,7 @@ export default function Home() {
 
         {/* Result Card */}
         {result && (
-          <div className="mt-8 bg-obsidian-900 border border-white/10 rounded-2xl p-5 shadow-xl animate-in fade-in duration-300">
+          <div id="result-card" className="mt-8 bg-obsidian-900 border border-brand-cyan/30 rounded-2xl p-5 shadow-2xl shadow-brand-cyan/10 animate-in fade-in duration-300">
             <div className="flex flex-col md:flex-row gap-5 items-start">
               {result.thumbnail && (
                 <div className="w-full md:w-56 aspect-video rounded-xl overflow-hidden bg-obsidian-950 relative border border-white/10 shrink-0">
