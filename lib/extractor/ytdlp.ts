@@ -1,11 +1,16 @@
-import { execFile } from "child_process";
-import { promisify } from "util";
 import { ExtractedMedia, SupportedPlatform } from "../types";
-
-const execFileAsync = promisify(execFile);
 
 export async function extractYtDlp(url: string, platform: SupportedPlatform): Promise<ExtractedMedia | null> {
   try {
+    // Dynamic import to safely handle Edge / Serverless environments (like Cloudflare)
+    const cp = await import("child_process").catch(() => null);
+    if (!cp || typeof cp.execFile !== "function") {
+      console.warn("yt-dlp is not available in this edge environment. Requires server with Python & yt-dlp installed.");
+      return null;
+    }
+    const { promisify } = await import("util");
+    const execFileAsync = promisify(cp.execFile);
+
     // Single fast execution with mobile player clients to bypass YouTube bot detection
     const args = [
       "-m",
