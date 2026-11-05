@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSponsorSettings, updateSponsorSettings, getBotStats } from "@/lib/storage/kv";
 
-export const runtime = "edge";
-
 export async function GET() {
   const [settings, stats] = await Promise.all([getSponsorSettings(), getBotStats()]);
   return NextResponse.json({ settings, stats });
