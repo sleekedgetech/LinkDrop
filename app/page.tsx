@@ -246,7 +246,7 @@ export default function Home() {
                     handleDownload(e);
                   }
                 }}
-                placeholder="Paste video URL (TikTok, Instagram Reels, YouTube, etc.)..."
+                placeholder="Paste video URL (Facebook, TikTok, Instagram Reels, YouTube, etc.)..."
                 className="w-full bg-obsidian-950 border border-white/10 rounded-xl px-4 py-3.5 pl-11 text-sm sm:text-base text-white placeholder-gray-500 focus:outline-none focus:border-brand-cyan/80 transition"
                 required
               />
@@ -394,6 +394,34 @@ export default function Home() {
                         <Download className="w-3.5 h-3.5 text-gray-400 ml-1" />
                       </a>
                     ))}
+                  </div>
+
+                  {/* Viral Social Share Callout */}
+                  <div className="mt-4 pt-3.5 border-t border-white/5 flex flex-wrap items-center justify-between gap-3 bg-obsidian-950/60 p-3 rounded-xl border border-white/5">
+                    <div className="flex items-center gap-2 text-xs text-gray-300">
+                      <Sparkles className="w-4 h-4 text-brand-cyan" />
+                      <span>Enjoying LinkDrop? Share with friends!</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href="https://t.me/share/url?url=https%3A%2F%2Ft.me%2Fmylinkdropbot&text=Download%20Facebook%2C%20TikTok%2C%20and%20Instagram%20videos%20without%20watermark%20for%20free%20with%20%40mylinkdropbot%21"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#2AABEE]/20 hover:bg-[#2AABEE]/30 text-[#2AABEE] border border-[#2AABEE]/40 transition flex items-center gap-1.5"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        Share on Telegram
+                      </a>
+                      <a
+                        href="https://api.whatsapp.com/send?text=Download%20Facebook%2C%20TikTok%2C%20and%20Instagram%20videos%20without%20watermark%20for%20free%20at%20https%3A%2F%2Flinkdrop.sleekedgetechsolutions.workers.dev%20or%20use%20the%20Telegram%20bot%20%40mylinkdropbot"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/40 transition flex items-center gap-1.5"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                        Share on WhatsApp
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>

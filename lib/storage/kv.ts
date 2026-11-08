@@ -2,10 +2,10 @@ import { SponsorAdSettings, BotStats, SupportedPlatform } from "../types";
 
 let memoryAdSettings: SponsorAdSettings = {
   enabled: true,
-  title: "🚀 Trade Crypto with Zero Fees",
-  body: "Join our official partner platform today and get up to $1,000 welcome bonus!",
-  buttonText: "👉 Claim $1,000 Bonus Now",
-  clickUrl: "https://t.me",
+  title: "❤️ Love LinkDrop? Share with Friends!",
+  body: "Help your friends download Facebook, TikTok & Instagram videos without watermark for free!",
+  buttonText: "📲 Share with Friends",
+  clickUrl: "https://t.me/share/url?url=https%3A%2F%2Ft.me%2Fmylinkdropbot&text=Download%20Facebook%2C%20TikTok%2C%20and%20Instagram%20videos%20without%20watermark%20for%20free%20with%20%40mylinkdropbot%21",
   slowModeSeconds: 60,
 };
 

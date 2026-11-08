@@ -64,7 +64,8 @@ export async function POST(req: Request) {
       }
 
       if (adSettings.enabled) {
-        caption += `📢 <b>${adSettings.title}</b>\n${adSettings.body}\n<a href="${adSettings.clickUrl}">👉 Click Here</a>\n\n`;
+        const buttonLabel = adSettings.buttonText || "Share with Friends";
+        caption += `📢 <b>${adSettings.title}</b>\n${adSettings.body}\n<a href="${adSettings.clickUrl}">👉 ${buttonLabel}</a>\n\n`;
       }
 
       caption += `⏳ <i>Slow mode active: ${adSettings.slowModeSeconds || 60}s countdown</i>`;

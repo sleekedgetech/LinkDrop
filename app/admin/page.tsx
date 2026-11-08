@@ -20,10 +20,11 @@ import { SponsorAdSettings, BotStats } from "@/lib/types";
 export default function AdminPage() {
   const [settings, setSettings] = useState<SponsorAdSettings>({
     enabled: true,
-    title: "🚀 Trade Crypto with Zero Fees",
-    body: "Join our official partner platform today and get up to $1,000 welcome bonus!",
-    buttonText: "👉 Claim $1,000 Bonus Now",
-    clickUrl: "https://t.me",
+    title: "❤️ Love LinkDrop? Share with Friends!",
+    body: "Help your friends download Facebook, TikTok & Instagram videos without watermark for free!",
+    buttonText: "📲 Share with Friends",
+    clickUrl:
+      "https://t.me/share/url?url=https%3A%2F%2Ft.me%2Fmylinkdropbot&text=Download%20Facebook%2C%20TikTok%2C%20and%20Instagram%20videos%20without%20watermark%20for%20free%20with%20%40mylinkdropbot%21",
     slowModeSeconds: 60,
   });
 
@@ -206,19 +207,39 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              {/* Active Toggle */}
-              <label className="flex items-center cursor-pointer gap-2">
-                <span className="text-xs font-semibold text-gray-300">
-                  {settings.enabled ? "Active" : "Paused"}
-                </span>
-                <input
-                  type="checkbox"
-                  checked={settings.enabled}
-                  onChange={(e) => setSettings({ ...settings, enabled: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-obsidian-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
-              </label>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSettings({
+                      ...settings,
+                      title: "❤️ Love LinkDrop? Share with Friends!",
+                      body: "Help your friends download Facebook, TikTok & Instagram videos without watermark for free!",
+                      buttonText: "📲 Share with Friends",
+                      clickUrl:
+                        "https://t.me/share/url?url=https%3A%2F%2Ft.me%2Fmylinkdropbot&text=Download%20Facebook%2C%20TikTok%2C%20and%20Instagram%20videos%20without%20watermark%20for%20free%20with%20%40mylinkdropbot%21",
+                    })
+                  }
+                  className="text-[11px] font-bold text-cyan-400 hover:text-cyan-300 bg-cyan-950/40 hover:bg-cyan-900/50 border border-cyan-500/30 px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+                  title="Reset ad copy to default viral social share"
+                >
+                  <Sparkles className="w-3 h-3" /> Viral Share Preset
+                </button>
+
+                {/* Active Toggle */}
+                <label className="flex items-center cursor-pointer gap-2">
+                  <span className="text-xs font-semibold text-gray-300">
+                    {settings.enabled ? "Active" : "Paused"}
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={settings.enabled}
+                    onChange={(e) => setSettings({ ...settings, enabled: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-obsidian-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
+                </label>
+              </div>
             </div>
 
             <form onSubmit={handleSave} className="space-y-4">
@@ -230,7 +251,7 @@ export default function AdminPage() {
                   type="text"
                   value={settings.title}
                   onChange={(e) => setSettings({ ...settings, title: e.target.value })}
-                  placeholder="e.g. 🚀 Trade Crypto with Zero Fees"
+                  placeholder="e.g. ❤️ Love LinkDrop? Share with Friends!"
                   className="w-full bg-obsidian-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition"
                   required
                 />
@@ -244,7 +265,7 @@ export default function AdminPage() {
                   value={settings.body}
                   onChange={(e) => setSettings({ ...settings, body: e.target.value })}
                   rows={3}
-                  placeholder="e.g. Join our official partner platform today and get up to $1,000 welcome bonus!"
+                  placeholder="e.g. Help your friends download Facebook, TikTok & Instagram videos without watermark for free!"
                   className="w-full bg-obsidian-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition resize-none"
                   required
                 />
@@ -259,7 +280,7 @@ export default function AdminPage() {
                     type="text"
                     value={settings.buttonText}
                     onChange={(e) => setSettings({ ...settings, buttonText: e.target.value })}
-                    placeholder="e.g. 👉 Claim Bonus Now"
+                    placeholder="e.g. 📲 Share with Friends"
                     className="w-full bg-obsidian-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition"
                     required
                   />
@@ -273,7 +294,7 @@ export default function AdminPage() {
                     type="url"
                     value={settings.clickUrl}
                     onChange={(e) => setSettings({ ...settings, clickUrl: e.target.value })}
-                    placeholder="https://t.me/partnerlink"
+                    placeholder="https://t.me/share/url?url=..."
                     className="w-full bg-obsidian-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition"
                     required
                   />
