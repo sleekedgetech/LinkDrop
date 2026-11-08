@@ -1,6 +1,7 @@
 import { ExtractedMedia } from "../types";
 import { detectPlatform } from "./platform";
 import { extractTikTok } from "./tikwm";
+import { extractFacebook } from "./facebook";
 import { extractCobalt } from "./cobalt";
 import { extractYtDlp } from "./ytdlp";
 
@@ -11,6 +12,12 @@ export async function extractMedia(url: string): Promise<ExtractedMedia> {
   if (platform === "tiktok") {
     const tikwmResult = await extractTikTok(url);
     if (tikwmResult) return tikwmResult;
+  }
+
+  // Facebook specialized native edge engine
+  if (platform === "facebook") {
+    const fbResult = await extractFacebook(url);
+    if (fbResult) return fbResult;
   }
 
   // YouTube / Multi-platform yt-dlp powerhouse
@@ -26,6 +33,12 @@ export async function extractMedia(url: string): Promise<ExtractedMedia> {
   // Universal Cobalt engine fallback
   const cobaltResult = await extractCobalt(url, platform);
   if (cobaltResult) return cobaltResult;
+
+  // Fallback attempt with Facebook scraper for unknown or shortlinks
+  if (platform !== "facebook") {
+    const fbFallback = await extractFacebook(url);
+    if (fbFallback) return fbFallback;
+  }
 
   // Fallback attempt with TikWM if not already tried (some shortlinks redirect)
   if (platform !== "tiktok") {

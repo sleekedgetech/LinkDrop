@@ -26,7 +26,7 @@ export async function POST(req: Request) {
         const bot = new TelegramBotClient();
         await bot.sendMessage(
           chatId,
-          `👋 <b>Welcome to LinkDrop Community!</b>\n\nDrop any TikTok, Instagram, YouTube, or Snapchat link in this chat to download it instantly without watermark.\n\n⏳ <i>Group Slow Mode: 60s per download</i>`,
+          `👋 <b>Welcome to LinkDrop!</b>\n\nDrop any Facebook, TikTok, Instagram, YouTube, or Snapchat link here to download it instantly in high quality.\n\n⏳ <i>Group Slow Mode: 60s per download</i>`,
           messageId
         );
       }
@@ -76,11 +76,14 @@ export async function POST(req: Request) {
         await bot.deleteMessage(chatId, progressMessageId);
       }
 
-      // Fallback if video was >50MB and Telegram rejected upload
-      if (!sent.ok && sent.description?.includes("too big")) {
+      // Fallback if Telegram rejected direct file upload (e.g. >50MB or CDN format)
+      if (!sent.ok) {
+        const isTooBig = sent.description?.toLowerCase().includes("too big") || sent.description?.toLowerCase().includes("too large");
         await bot.sendMessage(
           chatId,
-          `⚠️ <b>File exceeds Telegram 50MB direct upload limit.</b>\n\n<a href="${media.downloadUrl}">⬇️ Click here to download directly in HD</a>`,
+          `✅ <b>Video Ready!</b>\n\n🎬 <i>${media.title ? media.title.substring(0, 80) : "Media"}</i>\n\n${
+            isTooBig ? "⚠️ <i>File exceeds Telegram 50MB direct bot streaming limit.</i>\n\n" : ""
+          }⬇️ <a href="${media.downloadUrl}"><b>Click here to view / download directly in HD</b></a>`,
           messageId
         );
       }

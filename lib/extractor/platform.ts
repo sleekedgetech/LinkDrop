@@ -9,7 +9,7 @@ export function detectPlatform(url: string): SupportedPlatform {
     if (host.includes("instagram.com")) return "instagram";
     if (host.includes("youtube.com") || host.includes("youtu.be")) return "youtube";
     if (host.includes("snapchat.com")) return "snapchat";
-    if (host.includes("facebook.com") || host.includes("fb.watch")) return "facebook";
+    if (host.includes("facebook.com") || host.includes("fb.watch") || host.includes("fb.com")) return "facebook";
     if (host.includes("twitter.com") || host.includes("x.com")) return "twitter";
     if (host.includes("reddit.com")) return "reddit";
 
@@ -22,6 +22,8 @@ export function detectPlatform(url: string): SupportedPlatform {
 export function extractUrlFromText(text: string): string | null {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const matches = text.match(urlRegex);
-  return matches && matches.length > 0 ? matches[0] : null;
+  if (!matches || matches.length === 0) return null;
+  // Clean off trailing punctuation, parentheses, or quotes often caught in chat messages
+  return matches[0].replace(/[.,!?:;)"'>]+$/, "");
 }
 
