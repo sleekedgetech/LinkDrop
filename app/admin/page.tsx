@@ -567,17 +567,31 @@ export default function AdminPage() {
                 </div>
 
                 {/* Caption */}
-                <div className="text-xs text-gray-200 space-y-1.5 pt-1">
+                <div className="text-xs text-gray-200 space-y-2 pt-1">
                   <p className="font-semibold text-white">✨ Downloaded via LinkDrop</p>
                   <p className="text-gray-400 italic text-[11px]">🎬 Viral Social Reel #trending</p>
 
                   {settings.enabled ? (
-                    <div className="my-2 p-2.5 rounded-lg bg-[#242f3d] border border-white/5 text-[11px] space-y-1">
+                    <div className="my-2 p-2.5 rounded-lg bg-[#242f3d] border border-white/5 text-[11px] space-y-1.5">
                       <p className="font-bold text-cyan-400">{settings.title}</p>
                       <p className="text-gray-300">{settings.body}</p>
-                      <p className="text-cyan-300 font-semibold underline">
-                        👉 {settings.buttonText || "Share Group with Friends"}
-                      </p>
+                      
+                      <div className="pt-1">
+                        <span className="text-[10px] text-gray-400 block mb-1">📋 Tap link below to copy:</span>
+                        <div
+                          onClick={() => {
+                            navigator.clipboard.writeText(settings.groupInviteUrl || "https://t.me");
+                            alert("Copied to clipboard!");
+                          }}
+                          className="p-1.5 rounded-md bg-[#182533] border border-cyan-500/30 text-[11px] font-mono text-cyan-300 flex items-center justify-between cursor-pointer hover:bg-[#1d2d3e] transition"
+                          title="Click to copy in preview"
+                        >
+                          <span className="truncate">{settings.groupInviteUrl || "https://t.me/yourgroup"}</span>
+                          <span className="text-[9px] bg-cyan-500/20 text-cyan-300 px-1 py-0.5 rounded font-sans font-bold shrink-0 ml-1">
+                            Copy
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-[11px] text-gray-500 italic">[Sponsor ad disabled]</p>
@@ -588,18 +602,39 @@ export default function AdminPage() {
                   </p>
                 </div>
 
-                {/* Inline Telegram Button */}
+                {/* Inline Telegram Multi-Platform Share Buttons */}
                 {settings.enabled && (
-                  <div className="pt-1">
-                    <a
-                      href={effectiveShareUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="w-full py-2.5 px-3 rounded-lg bg-[#2b5278] hover:bg-[#32608d] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition text-center"
+                  <div className="pt-1 space-y-1.5">
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <a
+                        href={`https://t.me/share/url?url=${encodeURIComponent(settings.groupInviteUrl || "https://t.me")}&text=${encodeURIComponent("Join our community!")}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="py-2 px-2.5 rounded-lg bg-[#2b5278] hover:bg-[#32608d] text-white text-[11px] font-semibold flex items-center justify-center gap-1 transition text-center"
+                      >
+                        <Send className="w-3 h-3" />
+                        <span>📲 Telegram</span>
+                      </a>
+                      <a
+                        href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Join our group: ${settings.groupInviteUrl || "https://t.me"}`)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="py-2 px-2.5 rounded-lg bg-[#25D366]/20 hover:bg-[#25D366]/30 text-[#25D366] border border-[#25D366]/40 text-[11px] font-bold flex items-center justify-center gap-1 transition text-center"
+                      >
+                        <span>💬 WhatsApp</span>
+                      </a>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(settings.groupInviteUrl || "https://t.me");
+                        alert("Group invite link copied to clipboard!");
+                      }}
+                      className="w-full py-2 px-3 rounded-lg bg-obsidian-800 hover:bg-obsidian-750 text-gray-200 border border-white/10 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition text-center"
                     >
-                      <Send className="w-3.5 h-3.5" />
-                      {settings.buttonText || "📲 Share Group with Friends"}
-                    </a>
+                      <Copy className="w-3 h-3 text-cyan-400" />
+                      <span>📋 Copy Group Invite Link</span>
+                    </button>
                   </div>
                 )}
               </div>

@@ -91,9 +91,13 @@ export async function POST(req: Request) {
       }
 
       if (adSettings.enabled) {
-        const buttonLabel = adSettings.buttonText || "📲 Share Group with Friends";
-        const shareLink = adSettings.clickUrl || adSettings.groupInviteUrl || "https://t.me";
-        caption += `📢 <b>${adSettings.title}</b>\n${adSettings.body}\n<a href="${shareLink}">👉 ${buttonLabel}</a>\n\n`;
+        const groupLink = adSettings.groupInviteUrl || adSettings.clickUrl || "";
+        caption += `📢 <b>${adSettings.title}</b>\n${adSettings.body}\n`;
+        if (groupLink) {
+          caption += `\n📋 <b>Tap to copy & share to WhatsApp or friends:</b>\n<code>${groupLink}</code>\n\n`;
+        } else {
+          caption += `\n`;
+        }
       }
 
       caption += `⏳ <i>Slow mode active: ${adSettings.slowModeSeconds || 60}s countdown</i>`;

@@ -16,17 +16,40 @@ export class TelegramBotClient {
     replyToMessageId?: number,
     sponsorAd?: SponsorAdSettings
   ) {
-    const inlineKeyboard =
-      sponsorAd && sponsorAd.enabled && sponsorAd.clickUrl
-        ? [
-            [
-              {
-                text: sponsorAd.buttonText || "🚀 Check Sponsor",
-                url: sponsorAd.clickUrl,
-              },
-            ],
-          ]
-        : [];
+    const inlineKeyboard: any[][] = [];
+
+    if (sponsorAd && sponsorAd.enabled) {
+      if (sponsorAd.shareTarget === "custom" && sponsorAd.clickUrl) {
+        // Custom external sponsor/destination button
+        inlineKeyboard.push([
+          {
+            text: sponsorAd.buttonText || "👉 Visit Website",
+            url: sponsorAd.clickUrl,
+          },
+        ]);
+      } else {
+        // Multi-platform viral sharing (Telegram, WhatsApp, and 1-tap Copy)
+        const groupUrl = sponsorAd.groupInviteUrl || sponsorAd.clickUrl || "https://t.me";
+        const shareText =
+          "Download Facebook, TikTok & Instagram videos without watermark for free in our group!";
+        const telegramShareUrl = `https://t.me/share/url?url=${encodeURIComponent(groupUrl)}&text=${encodeURIComponent(shareText)}`;
+        const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${shareText} Join here: ${groupUrl}`)}`;
+
+        // Row 1: Share to Telegram & WhatsApp
+        inlineKeyboard.push([
+          { text: "📲 Telegram", url: telegramShareUrl },
+          { text: "💬 WhatsApp", url: whatsappShareUrl },
+        ]);
+
+        // Row 2: One-tap copy button (Telegram Bot API 7.8 native copy_text)
+        inlineKeyboard.push([
+          {
+            text: "📋 Copy Group Invite Link",
+            copy_text: { text: groupUrl },
+          },
+        ]);
+      }
+    }
 
     // 1. First attempt: Stream/Download binary and upload via multipart/form-data.
     // This bypasses CDN blocks where Meta/YouTube block Telegram's datacenter IPs.
