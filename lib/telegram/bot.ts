@@ -17,12 +17,12 @@ export class TelegramBotClient {
     sponsorAd?: SponsorAdSettings
   ) {
     const inlineKeyboard =
-      sponsorAd && sponsorAd.enabled
+      sponsorAd && sponsorAd.enabled && sponsorAd.clickUrl
         ? [
             [
               {
                 text: sponsorAd.buttonText || "🚀 Check Sponsor",
-                url: sponsorAd.clickUrl || "https://t.me",
+                url: sponsorAd.clickUrl,
               },
             ],
           ]
@@ -144,5 +144,49 @@ export class TelegramBotClient {
       }),
     });
     return await res.json();
+  }
+
+  async getChat(chatId: number | string) {
+    try {
+      const res = await fetch(`${TELEGRAM_API_BASE}/bot${this.token}/getChat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId }),
+      });
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  async exportChatInviteLink(chatId: number | string) {
+    try {
+      const res = await fetch(`${TELEGRAM_API_BASE}/bot${this.token}/exportChatInviteLink`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId }),
+      });
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  async getWebhookInfo() {
+    try {
+      const res = await fetch(`${TELEGRAM_API_BASE}/bot${this.token}/getWebhookInfo`);
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  async getMe() {
+    try {
+      const res = await fetch(`${TELEGRAM_API_BASE}/bot${this.token}/getMe`);
+      return await res.json();
+    } catch {
+      return null;
+    }
   }
 }

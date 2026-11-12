@@ -34,6 +34,15 @@ export interface SponsorAdSettings {
   buttonText: string;
   clickUrl: string;
   slowModeSeconds: number;
+  groupInviteUrl?: string;
+  shareTarget?: "group" | "custom";
+}
+
+export interface RecentDownloadItem {
+  id: string;
+  platform: SupportedPlatform;
+  title?: string;
+  timestamp: string;
 }
 
 export interface BotStats {
@@ -41,7 +50,8 @@ export interface BotStats {
   tiktokCount: number;
   instagramCount: number;
   youtubeCount: number;
+  facebookCount: number;
   otherCount: number;
   lastUpdated: string;
+  recentDownloads?: RecentDownloadItem[];
 }
-

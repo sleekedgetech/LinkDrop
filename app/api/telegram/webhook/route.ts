@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { extractUrlFromText } from "@/lib/extractor/platform";
 import { extractMedia } from "@/lib/extractor";
 import { TelegramBotClient } from "@/lib/telegram/bot";
-import { getSponsorSettings, incrementDownloadStats } from "@/lib/storage/kv";
+import {
+  getSponsorSettings,
+  updateSponsorSettings,
+  incrementDownloadStats,
+  buildViralShareUrl,
+} from "@/lib/storage/kv";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +20,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    const chatId = message.chat.id;
+    const chat = message.chat;
+    const chatId = chat.id;
     const messageId = message.message_id;
     const text = message.text;
 
@@ -35,6 +41,27 @@ export async function POST(req: Request) {
 
     const bot = new TelegramBotClient();
     const adSettings = await getSponsorSettings();
+
+    // Auto-detect group link if the bot is in a group and groupInviteUrl is not yet set
+    const isGroup = chat.type === "group" || chat.type === "supergroup";
+    if (isGroup && !adSettings.groupInviteUrl) {
+      let detectedGroupUrl = chat.username ? `https://t.me/${chat.username}` : "";
+      if (!detectedGroupUrl) {
+        const exported = await bot.exportChatInviteLink(chatId);
+        if (exported && exported.ok && exported.result) {
+          detectedGroupUrl = exported.result;
+        }
+      }
+      if (detectedGroupUrl) {
+        adSettings.groupInviteUrl = detectedGroupUrl;
+        await updateSponsorSettings({ groupInviteUrl: detectedGroupUrl });
+      }
+    }
+
+    // Configure the viral share link to point to the GROUP, not the bot
+    if (adSettings.groupInviteUrl && (adSettings.shareTarget === "group" || !adSettings.clickUrl)) {
+      adSettings.clickUrl = buildViralShareUrl(adSettings.groupInviteUrl);
+    }
 
     // 1. Send instant chat action (shows "uploading video..." in Telegram header)
     bot.sendChatAction(chatId, "upload_video");
@@ -56,7 +83,7 @@ export async function POST(req: Request) {
 
     try {
       const media = await extractMedia(url);
-      await incrementDownloadStats(media.platform);
+      await incrementDownloadStats(media.platform, media.title);
 
       let caption = `✨ <b>Downloaded via LinkDrop</b>\n\n`;
       if (media.title) {
@@ -64,8 +91,9 @@ export async function POST(req: Request) {
       }
 
       if (adSettings.enabled) {
-        const buttonLabel = adSettings.buttonText || "Share LinkDrop with Friends";
-        caption += `📢 <b>${adSettings.title}</b>\n${adSettings.body}\n<a href="${adSettings.clickUrl}">👉 ${buttonLabel}</a>\n\n`;
+        const buttonLabel = adSettings.buttonText || "📲 Share Group with Friends";
+        const shareLink = adSettings.clickUrl || adSettings.groupInviteUrl || "https://t.me";
+        caption += `📢 <b>${adSettings.title}</b>\n${adSettings.body}\n<a href="${shareLink}">👉 ${buttonLabel}</a>\n\n`;
       }
 
       caption += `⏳ <i>Slow mode active: ${adSettings.slowModeSeconds || 60}s countdown</i>`;

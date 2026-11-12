@@ -10,8 +10,13 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  "kv_namespaces": [
+    {
+      "binding": "LINKDROP_KV",
+      "id": "081c2ce8f57a49d99d842e3986f8268c"
+    }
+  ],
   "observability": {
     "enabled": true
   }
 }
-
