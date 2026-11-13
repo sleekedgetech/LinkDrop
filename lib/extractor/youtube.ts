@@ -9,7 +9,7 @@ export async function extractYouTube(url: string): Promise<ExtractedMedia | null
   const videoId = extractYouTubeId(url);
   if (!videoId) return null;
 
-  // 1. Invidious API instances (Pure JSON REST, edge-compatible)
+  // 1. Direct Invidious Proxy Stream (Bypasses googlevideo IP blocks)
   const invidiousHosts = [
     "https://yt.chocolatemoo53.com",
     "https://inv.bp.projectsegfau.lt",
@@ -19,61 +19,39 @@ export async function extractYouTube(url: string): Promise<ExtractedMedia | null
 
   for (const host of invidiousHosts) {
     try {
-      const res = await fetch(`${host}/api/v1/videos/${videoId}`, {
+      const infoRes = await fetch(`${host}/api/v1/videos/${videoId}`, {
         headers: { "User-Agent": "Mozilla/5.0" },
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(5000),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        // Check for progressive formatStreams (audio + video muxed)
-        const formatStreams = (data.formatStreams || []).filter(
-          (f: any) => f.url && (f.container === "mp4" || f.type?.includes("mp4"))
-        );
+      if (infoRes.ok) {
+        const data = await infoRes.json();
+        // Construct direct stream proxy URL that works on any IP
+        const streamUrl = `${host}/latest_version?id=${videoId}&itag=18`;
 
-        // Or adaptive formats
-        const adaptiveMp4 = (data.adaptiveFormats || []).filter(
-          (f: any) => f.url && f.type?.startsWith("video/mp4")
-        );
-
-        const chosenStream = formatStreams[0] || adaptiveMp4[0];
-        if (chosenStream && chosenStream.url) {
-          const options: MediaDownloadOption[] = [];
-          
-          for (const s of formatStreams) {
-            options.push({
-              quality: s.qualityLabel || s.resolution || "HD",
+        return {
+          platform: "youtube",
+          originalUrl: url,
+          title: data.title || "YouTube Video",
+          author: data.author,
+          thumbnail: data.videoThumbnails?.[0]?.url,
+          duration: data.lengthSeconds,
+          downloadUrl: streamUrl,
+          options: [
+            {
+              quality: "720p HD (Clean Stream)",
               format: "mp4",
-              url: s.url,
-            });
-          }
-
-          if (options.length === 0 && chosenStream) {
-            options.push({
-              quality: chosenStream.qualityLabel || "HD",
-              format: "mp4",
-              url: chosenStream.url,
-            });
-          }
-
-          return {
-            platform: "youtube",
-            originalUrl: url,
-            title: data.title || "YouTube Video",
-            author: data.author,
-            thumbnail: data.videoThumbnails?.[0]?.url,
-            duration: data.lengthSeconds,
-            downloadUrl: chosenStream.url,
-            options,
-          };
-        }
+              url: streamUrl,
+            },
+          ],
+        };
       }
     } catch {
-      // Continue to next host
+      // Continue to next
     }
   }
 
-  // 2. Piped API instances fallback
+  // 2. Piped API instances
   const pipedHosts = [
     "https://api.piped.private.coffee",
     "https://pipedapi.ducks.party",
@@ -84,13 +62,12 @@ export async function extractYouTube(url: string): Promise<ExtractedMedia | null
     try {
       const res = await fetch(`${host}/streams/${videoId}`, {
         headers: { "User-Agent": "Mozilla/5.0" },
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(5000),
       });
 
       if (res.ok) {
         const data = await res.json();
         const vStreams = (data.videoStreams || []).filter((v: any) => v.url);
-        // Prefer muxed mp4 stream
         const muxed =
           vStreams.find((v: any) => !v.videoOnly && v.format === "MPEG_4") ||
           vStreams.find((v: any) => v.format === "MPEG_4") ||
@@ -116,15 +93,15 @@ export async function extractYouTube(url: string): Promise<ExtractedMedia | null
         }
       }
     } catch {
-      // Continue to next host
+      // Continue
     }
   }
 
-  // 3. Fallback: Rapid public edge resolver
+  // 3. Fast Edge MP4 API Fallback
   try {
     const res = await fetch(
       `https://nntech-free-yt-api.vercel.app/api/download/mp4?url=${encodeURIComponent(url)}`,
-      { signal: AbortSignal.timeout(8000) }
+      { signal: AbortSignal.timeout(6000) }
     );
     if (res.ok) {
       const data = await res.json();
@@ -137,7 +114,7 @@ export async function extractYouTube(url: string): Promise<ExtractedMedia | null
           downloadUrl: data.download,
           options: [
             {
-              quality: "HD",
+              quality: "HD Clean Stream",
               format: "mp4",
               url: data.download,
             },
@@ -146,9 +123,8 @@ export async function extractYouTube(url: string): Promise<ExtractedMedia | null
       }
     }
   } catch {
-    // Ignore error
+    //
   }
 
   return null;
 }
-

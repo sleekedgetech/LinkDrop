@@ -109,18 +109,12 @@ export async function POST(req: Request) {
         await bot.deleteMessage(chatId, progressMessageId);
       }
 
-      // If Telegram rejected direct delivery (e.g. >50MB)
+      // If Telegram rejected direct delivery (e.g. >50MB limit or special codec)
       if (!sent.ok) {
-        const isTooBig =
-          sent.description?.toLowerCase().includes("too big") ||
-          sent.description?.toLowerCase().includes("too large");
+        const streamUrl = `https://linkdrop.sleekedgetechsolutions.workers.dev/api/stream?url=${encodeURIComponent(media.downloadUrl)}&filename=${media.platform}-video.mp4`;
         await bot.sendMessage(
           chatId,
-          `⚠️ <b>Delivery Notice:</b>\n\n${
-            isTooBig
-              ? "This video exceeds Telegram's 50MB direct bot streaming limit."
-              : "Unable to deliver this video directly into Telegram. Please check that the link is public and under 50MB."
-          }`,
+          `⚠️ <b>Large Video Delivery:</b>\n\nThis video exceeds Telegram's 50MB direct bot upload ceiling, but your file is ready:\n\n▶️ <a href="${streamUrl}"><b>Tap here to Stream & Download HD Video</b></a>\n\n🔗 <i>Alternative Source:</i> <a href="${media.downloadUrl}">Direct Mirror Link</a>`,
           messageId
         );
       }

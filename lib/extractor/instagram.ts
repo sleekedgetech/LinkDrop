@@ -245,40 +245,55 @@ export async function extractInstagram(url: string): Promise<ExtractedMedia | nu
     // Continue to next fallback
   }
 
-  // 3. Third Tier: OpenGraph meta tag parser
+  // 3. Third Tier: Instagram Embed & OpenGraph Scraper
   if (shortcode) {
-    try {
-      const embedRes = await fetch(`https://www.instagram.com/reel/${shortcode}/`, {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        },
-        signal: AbortSignal.timeout(6000),
-      });
+    const embedCandidates = [
+      `https://www.instagram.com/p/${shortcode}/embed/captioned/`,
+      `https://www.instagram.com/reel/${shortcode}/`,
+      url,
+    ];
 
-      if (embedRes.ok) {
-        const html = await embedRes.text();
-        const ogVideo = html.match(/<meta\s+property="og:video"\s+content="([^"]+)"/i)?.[1];
-        if (ogVideo) {
-          const directUrl = ogVideo.replace(/&amp;/g, "&");
-          return {
-            platform: "instagram",
-            originalUrl: url,
-            title: "Instagram Reel",
-            downloadUrl: directUrl,
-            options: [
-              {
-                quality: "HD",
-                format: "mp4",
-                url: directUrl,
-              },
-            ],
-          };
+    for (const target of embedCandidates) {
+      try {
+        const embedRes = await fetch(target, {
+          headers: {
+            "User-Agent":
+              "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+            Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+          },
+          signal: AbortSignal.timeout(6000),
+        });
+
+        if (embedRes.ok) {
+          const html = await embedRes.text();
+          const ogVideo =
+            html.match(/<meta[^>]+property="og:video"[^>]+content="([^"]+)"/i)?.[1] ||
+            html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:video"/i)?.[1] ||
+            html.match(/<meta[^>]+property="og:video:secure_url"[^>]+content="([^"]+)"/i)?.[1] ||
+            html.match(/"video_url":"([^"]+)"/i)?.[1] ||
+            html.match(/<video[^>]+src="([^"]+)"/i)?.[1];
+
+          if (ogVideo) {
+            const directUrl = ogVideo.replace(/&amp;/g, "&").replace(/\\u0026/g, "&").replace(/\\\//g, "/");
+            return {
+              platform: "instagram",
+              originalUrl: url,
+              title: "Instagram Video",
+              downloadUrl: directUrl,
+              options: [
+                {
+                  quality: "HD",
+                  format: "mp4",
+                  url: directUrl,
+                },
+              ],
+            };
+          }
         }
+      } catch {
+        // Continue to next candidate
       }
-    } catch {
-      // Ignore
     }
   }
 

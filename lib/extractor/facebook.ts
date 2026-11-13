@@ -16,7 +16,7 @@ function decodeSnapApp(h: string, u: number, n: string, t: number, e: number, r:
     "pow",
     "reduce",
     "reverse",
-    "0"
+    "0",
   ];
 
   function _0xe44c(d: string, eVal: number, fVal: number) {
@@ -61,60 +61,36 @@ function decodeSnapApp(h: string, u: number, n: string, t: number, e: number, r:
   }
 }
 
-/**
- * Safely decodes base64 payload from JWT token to extract direct CDN URL
- */
 function decodeJwtPayload(token: string): Record<string, any> | null {
   try {
     const parts = token.split(".");
     if (parts.length < 2) return null;
     let base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    while (base64.length % 4 !== 0) {
-      base64 += "=";
-    }
-
-    let decodedStr = "";
-    if (typeof atob === "function") {
-      decodedStr = atob(base64);
-    } else if (typeof Buffer !== "undefined") {
-      decodedStr = Buffer.from(base64, "base64").toString("utf-8");
-    }
-
+    while (base64.length % 4 !== 0) base64 += "=";
+    const decodedStr =
+      typeof atob === "function" ? atob(base64) : Buffer.from(base64, "base64").toString("utf-8");
     return JSON.parse(decodedStr);
   } catch {
     return null;
   }
 }
 
-/**
- * Parse the decoded HTML returned by SnapSave
- */
 function parseSnapSaveHtml(rawHtml: string, originalUrl: string): ExtractedMedia | null {
-  // Normalize escaped quotes and slashes from JS innerHTML assignment
-  const html = rawHtml
-    .replace(/\\"/g, '"')
-    .replace(/\\'/g, "'")
-    .replace(/\\\//g, "/");
+  const html = rawHtml.replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\\//g, "/");
 
-  // Extract thumbnail
   const thumbMatch = html.match(/<img[^>]+src="([^"]+)"/i);
   let thumbnail = thumbMatch ? thumbMatch[1].replace(/&amp;/g, "&") : undefined;
   if (thumbnail && thumbnail.includes("token=")) {
     const token = thumbnail.split("token=")[1]?.split("&")[0];
     const payload = token ? decodeJwtPayload(token) : null;
-    if (payload?.url) {
-      thumbnail = payload.url;
-    }
+    if (payload?.url) thumbnail = payload.url;
   }
 
-  // Extract title
-  const titleMatch = html.match(/<strong>(.*?)<\/strong>/i) || html.match(/<span class="video-des">(.*?)<\/span>/i);
+  const titleMatch =
+    html.match(/<strong>(.*?)<\/strong>/i) || html.match(/<span class="video-des">(.*?)<\/span>/i);
   let title = titleMatch ? titleMatch[1].trim() : "Facebook Video";
-  if (title === "..." || !title) {
-    title = "Facebook Video";
-  }
+  if (title === "..." || !title) title = "Facebook Video";
 
-  // Find all download buttons/links inside tbody
   const options: MediaDownloadOption[] = [];
   const tbodyMatch = html.match(/<tbody>([\s\S]*?)<\/tbody>/i);
   const searchArea = tbodyMatch ? tbodyMatch[1] : html;
@@ -130,112 +106,120 @@ function parseSnapSaveHtml(rawHtml: string, originalUrl: string): ExtractedMedia
       const rawDownloadUrl = linkMatch[1].replace(/&amp;/g, "&");
       const quality = qualityMatch ? qualityMatch[1].trim() : "HD";
 
-      // If downloadUrl has a JWT token containing direct Facebook CDN URL, resolve direct URL
       let directUrl = rawDownloadUrl;
       if (rawDownloadUrl.includes("token=")) {
         const token = rawDownloadUrl.split("token=")[1]?.split("&")[0];
         const payload = token ? decodeJwtPayload(token) : null;
-        if (payload?.url) {
-          directUrl = payload.url;
-        }
+        if (payload?.url) directUrl = payload.url;
       }
 
       options.push({
         quality,
         format: "mp4",
-        url: directUrl || rawDownloadUrl
+        url: directUrl || rawDownloadUrl,
       });
     }
   }
 
-  // Fallback: look for direct media links if table parsing found nothing
   if (options.length === 0) {
     const linkRegex = /href="(https:\/\/[^"]*(?:rapidcdn\.app|fbcdn\.net)[^"]*)"/gi;
     let m: RegExpExecArray | null;
     while ((m = linkRegex.exec(html)) !== null) {
       const u = m[1].replace(/&amp;/g, "&");
       if (!options.some((o) => o.url === u)) {
-        options.push({
-          quality: "HD",
-          format: "mp4",
-          url: u
-        });
+        options.push({ quality: "HD", format: "mp4", url: u });
       }
     }
   }
 
-  if (options.length === 0) {
-    return null;
-  }
-
-  // Best download URL is HD or 720p/1080p if available
-  const bestOption =
-    options.find(
-      (o) =>
-        o.quality.toLowerCase().includes("hd") ||
-        o.quality.toLowerCase().includes("720") ||
-        o.quality.toLowerCase().includes("1080")
-    ) || options[0];
+  if (options.length === 0) return null;
 
   return {
     platform: "facebook",
     originalUrl,
     title,
     thumbnail,
-    downloadUrl: bestOption.url,
-    options
+    downloadUrl: options[0].url,
+    options,
   };
 }
 
-/**
- * Extracts Facebook video using zero-cost serverless edge decoder
- */
 export async function extractFacebook(url: string): Promise<ExtractedMedia | null> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 12000);
-
+  // Tier 1: Direct Facebook OpenGraph & Native Stream Parser
   try {
-    const res = await fetch("https://snapsave.app/action.php", {
+    const fbRes = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      },
+      signal: AbortSignal.timeout(6000),
+    });
+
+    if (fbRes.ok) {
+      const html = await fbRes.text();
+      const sdMatch =
+        html.match(/"browser_native_sd_url":"(.*?)"/) ||
+        html.match(/"playable_url":"(.*?)"/) ||
+        html.match(/sd_src\s*:\s*"([^"]*)"/);
+      const hdMatch =
+        html.match(/"browser_native_hd_url":"(.*?)"/) ||
+        html.match(/"playable_url_quality_hd":"(.*?)"/) ||
+        html.match(/hd_src\s*:\s*"([^"]*)"/);
+      const titleMatch = html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/i);
+
+      const rawUrl = hdMatch?.[1] || sdMatch?.[1];
+      if (rawUrl) {
+        const cleanUrl = JSON.parse(`{"u":"${rawUrl}"}`).u;
+        return {
+          platform: "facebook",
+          originalUrl: url,
+          title: titleMatch ? titleMatch[1] : "Facebook Video",
+          downloadUrl: cleanUrl,
+          options: [{ quality: "HD Clean", format: "mp4", url: cleanUrl }],
+        };
+      }
+    }
+  } catch {
+    // Continue
+  }
+
+  // Tier 2: SnapSave Engine
+  try {
+    const res = await fetch("https://snapsave.app/action.php?lang=en", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Referer: "https://snapsave.app/"
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+        Referer: "https://snapsave.app/",
       },
       body: new URLSearchParams({ url }),
-      signal: controller.signal
+      signal: AbortSignal.timeout(8000),
     });
 
-    if (!res.ok) {
-      return null;
+    if (res.ok) {
+      const raw = await res.text();
+      const match = raw.match(
+        /\}\s*\(\s*"([^"]+)"\s*,\s*(\d+)\s*,\s*"([^"]+)"\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/
+      );
+      if (match) {
+        const [, h, u, n, t, e, r] = match;
+        const decoded = decodeSnapApp(
+          h,
+          parseInt(u, 10),
+          n,
+          parseInt(t, 10),
+          parseInt(e, 10),
+          parseInt(r, 10)
+        );
+        const parsed = parseSnapSaveHtml(decoded, url);
+        if (parsed) return parsed;
+      }
     }
-
-    const raw = await res.text();
-    // Look for eval(function(h,u,n,t,e,r){...}(args))
-    const match = raw.match(
-      /\}\s*\(\s*"([^"]+)"\s*,\s*(\d+)\s*,\s*"([^"]+)"\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/
-    );
-
-    if (!match) {
-      return null;
-    }
-
-    const [, h, u, n, t, e, r] = match;
-    const decoded = decodeSnapApp(
-      h,
-      parseInt(u, 10),
-      n,
-      parseInt(t, 10),
-      parseInt(e, 10),
-      parseInt(r, 10)
-    );
-
-    return parseSnapSaveHtml(decoded, url);
-  } catch (err) {
-    console.error("SnapSave Facebook extraction error:", err);
-    return null;
-  } finally {
-    clearTimeout(timeoutId);
+  } catch {
+    //
   }
+
+  return null;
 }

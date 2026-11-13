@@ -53,6 +53,7 @@ export class TelegramBotClient {
 
     // 1. First attempt: Stream/Download binary and upload via multipart/form-data.
     // This bypasses CDN blocks where Meta/YouTube block Telegram's datacenter IPs.
+    let downloadedBuffer: ArrayBuffer | null = null;
     try {
       const videoRes = await fetch(videoUrl, {
         headers: {
@@ -67,6 +68,7 @@ export class TelegramBotClient {
         const arrayBuffer = await videoRes.arrayBuffer();
         // Telegram Bot API limit for multipart uploads is 50MB
         if (arrayBuffer.byteLength > 0 && arrayBuffer.byteLength <= 50 * 1024 * 1024) {
+          downloadedBuffer = arrayBuffer;
           const blob = new Blob([arrayBuffer], { type: "video/mp4" });
           const formData = new FormData();
           formData.append("chat_id", String(chatId));
@@ -102,21 +104,65 @@ export class TelegramBotClient {
     }
 
     // 2. Fallback attempt: Standard URL-based sendVideo
-    const fallbackRes = await fetch(`${TELEGRAM_API_BASE}/bot${this.token}/sendVideo`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        video: videoUrl,
-        caption: caption,
-        parse_mode: "HTML",
-        supports_streaming: true,
-        reply_to_message_id: replyToMessageId,
-        reply_markup: inlineKeyboard.length > 0 ? { inline_keyboard: inlineKeyboard } : undefined,
-      }),
-    });
+    try {
+      const fallbackRes = await fetch(`${TELEGRAM_API_BASE}/bot${this.token}/sendVideo`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          video: videoUrl,
+          caption: caption,
+          parse_mode: "HTML",
+          supports_streaming: true,
+          reply_to_message_id: replyToMessageId,
+          reply_markup: inlineKeyboard.length > 0 ? { inline_keyboard: inlineKeyboard } : undefined,
+        }),
+      });
 
-    return await fallbackRes.json();
+      const fallbackResult = await fallbackRes.json();
+      if (fallbackResult && fallbackResult.ok) {
+        return fallbackResult;
+      }
+    } catch (e: any) {
+      console.warn("URL sendVideo encountered an issue:", e?.message || e);
+    }
+
+    // 3. Fallback attempt: sendDocument if video codec or format isn't accepted by sendVideo
+    if (downloadedBuffer) {
+      try {
+        const blob = new Blob([downloadedBuffer], { type: "video/mp4" });
+        const formData = new FormData();
+        formData.append("chat_id", String(chatId));
+        formData.append("document", blob, "video.mp4");
+        formData.append("caption", caption);
+        formData.append("parse_mode", "HTML");
+
+        if (replyToMessageId) {
+          formData.append("reply_to_message_id", String(replyToMessageId));
+        }
+
+        if (inlineKeyboard.length > 0) {
+          formData.append(
+            "reply_markup",
+            JSON.stringify({ inline_keyboard: inlineKeyboard })
+          );
+        }
+
+        const docRes = await fetch(`${TELEGRAM_API_BASE}/bot${this.token}/sendDocument`, {
+          method: "POST",
+          body: formData,
+        });
+
+        const docResult = await docRes.json();
+        if (docResult && docResult.ok) {
+          return docResult;
+        }
+      } catch (e: any) {
+        console.warn("Binary sendDocument encountered an issue:", e?.message || e);
+      }
+    }
+
+    return { ok: false, description: "Failed to upload video through all Telegram delivery tiers." };
   }
 
   async sendMessage(chatId: number | string, text: string, replyToMessageId?: number) {
